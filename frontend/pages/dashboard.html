@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Alumno - CECYTE</title>
+  <link rel="stylesheet" href="../styles/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header>
+      <img src="../assets/logo-cecyte.png" alt="Logo CECYTE" class="logo">
+      <h1>Bienvenid@ a su Sistema de control</h1>
+      <p id="nombreAlumno">Nombre del alumn@</p>
+    </header>
+
+    <form id="registroForm">
+      <label for="computadora">🖥️ Computadora</label>
+      <input type="text" id="Computadora" placeholder="Ej. 14" required> 
+      <span id="errorComputadora" class="error-msg"></span>
+
+      <label for="laboratorio">🧪 Laboratorio</label>
+      <select id="laboratorio" required>
+        <option value="">Selecciona un laboratorio</option>
+        <option value="Laboratorio 1">Laboratorio 1</option>
+        <option value="Laboratorio 3">Laboratorio 3</option>
+      </select>
+
+      <label for="profesor">👨‍🏫 Profesor(a)</label>
+      <select id="profesor" required>
+        <option value="">Selecciona un profesor</option>
+        <option value="Prof. Madrigal">Prof. Madrigal</option>
+        <option value="Prof. Martínez">Prof. Martínez</option>
+        <option value="Tiempo Libre">Tiempo Libre</option>
+        <option value="Otro">Otro</option>
+
+      </select>
+
+      <button type="submit" class="guardar">Guardar selección</button>
+      <button type="button" class="ver-lista">Ver lista de selecciones</button>
+      <button type="button" class="cerrar-sesion">Cerrar sesión</button>
+    </form>
+
+    <div id="temporizador" class="temporizador">Tiempo activo: 00:00:00</div>
+  </div>
+
+  <script src="../scripts/dashboard.js"></script>
+</body>
+</html>

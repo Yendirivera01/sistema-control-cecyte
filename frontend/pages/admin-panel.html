@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Administración - CECYTE</title>
+  <link rel="stylesheet" href="../styles/admin-panel.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="layout">
+    <!-- Panel izquierdo -->
+    <aside class="sidebar">
+      <img src="../assets/logo-cecyte.png" alt="Logo CECYTE" class="logo" />
+      <h2>Bienvenido(a) al Sistema de Control</h2>
+      <p id="adminNombre">Administrador General</p>
+      <nav>
+        <ul>
+          <li><a href="#" data-section="inicio">Inicio</a></li>
+          <li><a href="#" data-section="historial">Historial</a></li>
+          <li><a href="#" data-section="profesores">Profesores</a></li>
+          <li><a href="#" data-section="horarios">Horarios</a></li>
+          <a href="#" id="cerrarSesionAdmin" class="cerrar-sesion"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Panel central dinámico -->
+    <main class="main-panel">
+      <section id="inicio" class="panel-section active">
+        <h1>Panel de Administración</h1>
+        <div class="stats">
+          <div class="stat-box"><h2 id="sesionesActivas">0</h2><p>Sesiones activas</p></div>
+          <div class="stat-box"><h2 id="horasTotales">0</h2><p>Horas total usadas</p></div>
+          <div class="stat-box"><h2 id="computadorasActivas">0</h2><p>Computadoras activas</p></div>
+        </div>
+        <section class="grafico">
+          <h3>Uso de Laboratorios esta semana</h3>
+          <canvas id="graficoLaboratorio"></canvas>
+        </section> 
+      </section>
+
+      <section id="historial" class="panel-section">
+        <h3>Historial de uso de Computadoras</h3>
+        <div class="filtros">
+          <input type="date" id="fecha" />
+          <select id="laboratorio">
+            <option value="">Todos</option>
+            <option value="Lab 1">Lab 1</option>
+            <option value="Lab 3">Lab 3</option>
+          </select>
+          <input type="text" id="profesor" placeholder="Nombre del profesor" />
+          <button id="filtrar">Filtrar</button>
+          <button id="exportExcel">Exportar a Excel</button>
+          <button id="exportPDF">Exportar a PDF</button>
+        </div>
+        <table class="tabla-historial">
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>Laboratorio</th>
+              <th>Computadora</th>
+              <th>Profesor</th>
+              <th>Hora inicio</th>
+              <th>Hora salida</th>
+            </tr>
+          </thead>
+          <tbody id="tablaHistorial"></tbody>
+        </table>
+      </section>
+
+      <section id="profesores" class="panel-section">
+        <h1>Gestión de Profesores</h1>
+        <div class="profesores-grid" id="profesoresGrid">
+          <!-- Tarjetas de profesores se insertan aquí -->
+          <div class="profesor-card add-card" id="agregarProfesor">
+            <span>+</span>
+            <p>Agregar Profesor</p>
+          </div>
+        </div>
+        
+        <!-- Modal para agregar/editar profesor -->
+        <div id="modalProfesor" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitulo">Agregar Profesor</h2>
+            <form id="formProfesor">
+              <input type="hidden" id="profesorId" />
+              <input type="text" id="nombreProfesor" placeholder="Nombre completo" required />
+              <input type="email" id="correoProfesor" placeholder="Correo institucional" required />
+              <input type="text" id="materiaProfesor" placeholder="Materia que imparte" required />
+              <div class="modal-buttons">
+                <button type="submit" class="btn-guardar">Guardar</button>
+                <button type="button" class="btn-cancelar" id="cancelarProfesor">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="horarios" class="panel-section">
+        <h1>Gestión de Horarios</h1>
+        <div class="horarios-grid" id="horariosGrid">
+          <!-- Tarjetas de horarios se insertan aquí -->
+          <div class="horario-card add-card" id="agregarHorario">
+            <span>+</span>
+            <p>Agregar Horario</p>
+          </div>
+        </div>
+        
+        <!-- Modal para agregar/editar horario -->
+        <div id="modalHorario" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTituloHorario">Agregar Horario</h2>
+            <form id="formHorario">
+              <input type="hidden" id="horarioId" />
+              <select id="laboratorioHorario" required>
+                <option value="">Seleccionar laboratorio</option>
+                <option value="Lab 1">Laboratorio 1</option>
+                <option value="Lab 3">Laboratorio 3</option>
+              </select>
+              <select id="diaSemana" required>
+                <option value="">Seleccionar día</option>
+                <option value="Lunes">Lunes</option>
+                <option value="Martes">Martes</option>
+                <option value="Miércoles">Miércoles</option>
+                <option value="Jueves">Jueves</option>
+                <option value="Viernes">Viernes</option>
+              </select>
+              <input type="time" id="horaInicio" required />
+              <input type="time" id="horaFin" required />
+              <select id="profesorHorario" required>
+                <option value="">Seleccionar profesor</option>
+              </select>
+              <input type="text" id="grupoHorario" placeholder="Grupo (ej: 6A)" required />
+              <div class="modal-buttons">
+                <button type="submit" class="btn-guardar">Guardar</button>
+                <button type="button" class="btn-cancelar" id="cancelarHorario">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../scripts/admin-panel.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
