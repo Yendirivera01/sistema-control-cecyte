@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Inicializar modales
   inicializarModales();
-  
+
   // Cargar datos iniciales
   cargarProfesores();
   cargarHistorial();
@@ -36,14 +36,14 @@ document.addEventListener("DOMContentLoaded", () => {
 // ========== FUNCIONALIDAD PARA PROFESORES ==========
 async function cargarProfesores() {
   try {
-    const res = await fetch("/api/admin/profesores");
+    const res = await fetch("http://localhost:3000/api/admin/profesores");
     const data = await res.json();
-    
+
     if (!data.success) {
       console.error("❌ Error del servidor:", data.message);
       return;
     }
-    
+
     const grid = document.getElementById("profesoresGrid");
     grid.innerHTML = "";
 
@@ -105,9 +105,9 @@ async function cargarProfesores() {
 // ========== HISTORIAL ==========
 async function cargarHistorial() {
   try {
-    const res = await fetch("/api/admin/historial");
+    const res = await fetch("http://localhost:3000/api/admin/historial");
     const data = await res.json();
-    
+
     if (!data.success) {
       console.error("❌ Error del servidor:", data.message);
       return;
@@ -165,9 +165,9 @@ async function guardarProfesor() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    
+
     const data = await response.json();
-    
+
     if (data.success) {
       document.getElementById("modalProfesor").style.display = "none";
       cargarProfesores();
@@ -184,13 +184,13 @@ async function guardarProfesor() {
 function abrirModalProfesor(profesor = null) {
   const modal = document.getElementById("modalProfesor");
   const titulo = document.getElementById("modalTitulo");
-  
+
   titulo.textContent = profesor ? "Editar Profesor" : "Agregar Profesor";
   document.getElementById("profesorId").value = profesor?.id || "";
   document.getElementById("nombreProfesor").value = profesor?.nombre || "";
   document.getElementById("correoProfesor").value = profesor?.correo || "";
   document.getElementById("materiaProfesor").value = profesor?.materia || "";
-  
+
   modal.style.display = "flex";
 }
 
@@ -208,13 +208,13 @@ async function editarProfesor(id) {
 
 async function eliminarProfesor(id) {
   if (!confirm("¿Estás seguro de que deseas eliminar este profesor?")) return;
-  
+
   try {
-    const response = await fetch(`http://localhost:3000/api/admin/profesores/${id}`, { 
-      method: "DELETE" 
+    const response = await fetch(`http://localhost:3000/api/admin/profesores/${id}`, {
+      method: "DELETE"
     });
     const data = await response.json();
-    
+
     if (data.success) {
       cargarProfesores();
     } else {
@@ -304,7 +304,7 @@ async function cargarHorarios() {
 function abrirModalHorario(horario = null) {
   const modal = document.getElementById("modalHorario");
   const titulo = document.getElementById("modalTituloHorario");
-  
+
   titulo.textContent = horario ? "Editar Horario" : "Agregar Horario";
   document.getElementById("horarioId").value = horario?.id || "";
   document.getElementById("laboratorioHorario").value = horario?.laboratorio || "";
@@ -312,10 +312,10 @@ function abrirModalHorario(horario = null) {
   document.getElementById("horaInicio").value = horario?.horaInicio || "";
   document.getElementById("horaFin").value = horario?.horaFin || "";
   document.getElementById("grupoHorario").value = horario?.grupo || "";
-  
+
   // Cargar lista de profesores en el select
   cargarProfesoresEnSelect();
-  
+
   modal.style.display = "flex";
 }
 
@@ -325,7 +325,7 @@ async function cargarProfesoresEnSelect() {
     const data = await res.json();
     const select = document.getElementById("profesorHorario");
     select.innerHTML = '<option value="">Seleccionar profesor</option>';
-    
+
     if (data.success && data.data) {
       data.data.forEach(profesor => {
         const option = document.createElement("option");
@@ -428,9 +428,9 @@ async function guardarProfesor() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    
+
     const data = await response.json();
-    
+
     if (data.success) {
       document.getElementById("modalProfesor").style.display = "none";
       cargarProfesores();
@@ -459,18 +459,18 @@ async function guardarHorario() {
     return;
   }
 
-  const payload = { 
-    laboratorio, 
-    dia, 
-    horaInicio, 
-    horaFin, 
-    profesorId, 
-    grupo 
+  const payload = {
+    laboratorio,
+    dia,
+    horaInicio,
+    horaFin,
+    profesorId,
+    grupo
   };
 
   // Aquí deberías implementar la llamada a tu API para guardar horarios
   console.log("Guardando horario:", payload);
-  
+
   // Simulación de guardado
   try {
     // Reemplaza esto con tu llamada real a la API
@@ -479,7 +479,7 @@ async function guardarHorario() {
     //   headers: { 'Content-Type': 'application/json' },
     //   body: JSON.stringify(payload)
     // });
-    
+
     // Simulamos un éxito
     document.getElementById("modalHorario").style.display = "none";
     cargarHorarios();
