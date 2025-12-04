@@ -15,7 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById(target).classList.add("active");
 
       // Cargar datos específicos según la sección
-      if (target === "historial") {
+      if (target === "inicio") {
+        cargarEstadisticas();
+        crearGraficoLaboratorio();
+      } else if (target === "historial") {
         cargarHistorial();
       } else if (target === "profesores") {
         cargarProfesores();
@@ -29,9 +32,128 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarModales();
 
   // Cargar datos iniciales
+  cargarEstadisticas();
+  crearGraficoLaboratorio();
   cargarProfesores();
   cargarHistorial();
 });
+
+// ========== ESTADÍSTICAS DEL DASHBOARD ==========
+
+let graficoLaboratorioInstance = null;
+
+async function cargarEstadisticas() {
+  try {
+    const res = await fetch("http://localhost:3000/api/admin/estadisticas");
+    const data = await res.json();
+
+    if (!data.success) {
+      console.error("❌ Error al cargar estadísticas:", data.message);
+      return;
+    }
+
+    // Actualizar los elementos del DOM con las estadísticas
+    document.getElementById("sesionesActivas").textContent = data.data.sesionesActivas;
+    document.getElementById("horasTotales").textContent = data.data.horasTotales;
+    document.getElementById("computadorasActivas").textContent = data.data.computadorasActivas;
+
+    console.log("✅ Estadísticas cargadas correctamente");
+  } catch (err) {
+    console.error("❌ Error al cargar estadísticas:", err);
+  }
+}
+
+async function crearGraficoLaboratorio() {
+  try {
+    // Obtener el canvas
+    const ctx = document.getElementById("graficoLaboratorio");
+    if (!ctx) {
+      console.error("❌ Canvas no encontrado");
+      return;
+    }
+
+    // Destruir gráfico anterior si existe
+    if (graficoLaboratorioInstance) {
+      graficoLaboratorioInstance.destroy();
+    }
+
+    // Obtener datos del historial para crear el gráfico
+    const res = await fetch("http://localhost:3000/api/admin/historial");
+    const data = await res.json();
+
+    if (!data.success || !data.data) {
+      console.error("❌ Error al obtener datos para el gráfico");
+      return;
+    }
+
+    // Procesar datos para el gráfico (últimos 7 días)
+    const hoy = new Date();
+    const diasSemana = [];
+    const usoPorDia = {};
+
+    // Generar últimos 7 días
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date(hoy);
+      fecha.setDate(fecha.getDate() - i);
+      const diaStr = fecha.toLocaleDateString('es-MX', { weekday: 'short' });
+      const fechaStr = fecha.toISOString().split('T')[0];
+      diasSemana.push(diaStr);
+      usoPorDia[fechaStr] = 0;
+    }
+
+    // Contar sesiones por día
+    data.data.forEach(sesion => {
+      const fechaSesion = new Date(sesion.fecha).toISOString().split('T')[0];
+      if (usoPorDia.hasOwnProperty(fechaSesion)) {
+        usoPorDia[fechaSesion]++;
+      }
+    });
+
+    // Convertir a array de valores
+    const valores = Object.values(usoPorDia);
+
+    // Crear el gráfico
+    graficoLaboratorioInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: diasSemana,
+        datasets: [{
+          label: 'Sesiones de uso',
+          data: valores,
+          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 2,
+          borderRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          title: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+
+    console.log("✅ Gráfico creado correctamente");
+  } catch (err) {
+    console.error("❌ Error al crear gráfico:", err);
+  }
+}
 
 // ========== FUNCIONALIDAD PARA PROFESORES ==========
 async function cargarProfesores() {
