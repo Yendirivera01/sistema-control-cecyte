@@ -230,38 +230,53 @@ async function eliminarProfesor(id) {
 
 async function cargarHorarios() {
   try {
-    // Aquí deberías hacer la llamada a tu API para obtener los horarios
+    const res = await fetch("http://localhost:3000/api/admin/horarios");
+    const data = await res.json();
+
+    if (!data.success) {
+      console.error("❌ Error del servidor:", data.message);
+      return;
+    }
+
+    // Cargar profesores para mapear IDs a nombres
+    const resProfesores = await fetch("http://localhost:3000/api/admin/profesores");
+    const dataProfesores = await resProfesores.json();
+    const profesoresMap = {};
+
+    if (dataProfesores.success && dataProfesores.data) {
+      dataProfesores.data.forEach(prof => {
+        profesoresMap[prof.id] = prof.nombre;
+      });
+    }
+
     const grid = document.getElementById("horariosGrid");
     grid.innerHTML = "";
 
-    // Ejemplo de horarios (deberías reemplazar esto con tu API)
-    const horariosEjemplo = [
-      { id: 1, laboratorio: "Lab 1", dia: "Lunes", horaInicio: "08:00", horaFin: "10:00", profesor: "Prof. Martínez", grupo: "6A" },
-      { id: 2, laboratorio: "Lab 3", dia: "Miércoles", horaInicio: "10:00", horaFin: "12:00", profesor: "Prof. Madrigal", grupo: "5B" }
-    ];
-
-    horariosEjemplo.forEach(horario => {
-      const card = document.createElement("div");
-      card.className = "horario-card";
-      card.innerHTML = `
-        <h3>${horario.laboratorio}</h3>
-        <div class="horario-info">
-          <p><strong>${horario.dia}</strong></p>
-          <p>${horario.horaInicio} - ${horario.horaFin}</p>
-          <p>${horario.profesor}</p>
-          <p>Grupo: ${horario.grupo}</p>
-        </div>
-        <div class="acciones">
-          <button class="btn-editar" data-id="${horario.id}">
-            <i class="fas fa-edit"></i> Editar
-          </button>
-          <button class="btn-eliminar" data-id="${horario.id}">
-            <i class="fas fa-trash"></i> Eliminar
-          </button>
-        </div>
-      `;
-      grid.appendChild(card);
-    });
+    if (data.data && data.data.length > 0) {
+      data.data.forEach(horario => {
+        const card = document.createElement("div");
+        card.className = "horario-card";
+        const profesorNombre = profesoresMap[horario.profesorId] || "Profesor desconocido";
+        card.innerHTML = `
+          <h3>${horario.laboratorio}</h3>
+          <div class="horario-info">
+            <p><strong>${horario.dia}</strong></p>
+            <p>${horario.horaInicio} - ${horario.horaFin}</p>
+            <p>${profesorNombre}</p>
+            <p>Grupo: ${horario.grupo || 'N/A'}</p>
+          </div>
+          <div class="acciones">
+            <button class="btn-editar" data-id="${horario.id}">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+            <button class="btn-eliminar" data-id="${horario.id}">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
 
     // Agregar tarjeta para añadir nuevo horario
     const addCard = document.createElement("div");
@@ -280,18 +295,14 @@ async function cargarHorarios() {
       document.querySelectorAll(".horario-card .btn-editar").forEach(btn => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
-          // Aquí iría la función para editar horario
-          alert('Editar horario ' + btn.dataset.id);
+          editarHorario(btn.dataset.id);
         });
       });
 
       document.querySelectorAll(".horario-card .btn-eliminar").forEach(btn => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
-          // Aquí iría la función para eliminar horario
-          if (confirm("¿Estás seguro de que deseas eliminar este horario?")) {
-            alert('Eliminar horario ' + btn.dataset.id);
-          }
+          eliminarHorario(btn.dataset.id);
         });
       });
     }, 100);
@@ -314,12 +325,12 @@ function abrirModalHorario(horario = null) {
   document.getElementById("grupoHorario").value = horario?.grupo || "";
 
   // Cargar lista de profesores en el select
-  cargarProfesoresEnSelect();
+  cargarProfesoresEnSelect(horario?.profesorId);
 
   modal.style.display = "flex";
 }
 
-async function cargarProfesoresEnSelect() {
+async function cargarProfesoresEnSelect(selectedProfesorId = null) {
   try {
     const res = await fetch("http://localhost:3000/api/admin/profesores");
     const data = await res.json();
@@ -331,6 +342,9 @@ async function cargarProfesoresEnSelect() {
         const option = document.createElement("option");
         option.value = profesor.id;
         option.textContent = profesor.nombre;
+        if (selectedProfesorId && profesor.id == selectedProfesorId) {
+          option.selected = true;
+        }
         select.appendChild(option);
       });
     }
@@ -454,8 +468,14 @@ async function guardarHorario() {
   const grupo = document.getElementById("grupoHorario").value;
 
   // Validación básica
-  if (!laboratorio || !dia || !horaInicio || !horaFin || !profesorId || !grupo) {
-    alert("Por favor, complete todos los campos");
+  if (!laboratorio || !dia || !horaInicio || !horaFin || !profesorId) {
+    alert("Por favor, complete todos los campos requeridos");
+    return;
+  }
+
+  // Validar que horaInicio sea antes de horaFin
+  if (horaInicio >= horaFin) {
+    alert("La hora de inicio debe ser anterior a la hora de fin");
     return;
   }
 
@@ -464,29 +484,68 @@ async function guardarHorario() {
     dia,
     horaInicio,
     horaFin,
-    profesorId,
+    profesorId: parseInt(profesorId),
     grupo
   };
 
-  // Aquí deberías implementar la llamada a tu API para guardar horarios
-  console.log("Guardando horario:", payload);
+  const url = id
+    ? `http://localhost:3000/api/admin/horarios/${id}`
+    : "http://localhost:3000/api/admin/horarios";
 
-  // Simulación de guardado
+  const method = id ? "PUT" : "POST";
+
   try {
-    // Reemplaza esto con tu llamada real a la API
-    // const response = await fetch('http://localhost:3000/api/admin/horarios', {
-    //   method: id ? 'PUT' : 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(payload)
-    // });
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-    // Simulamos un éxito
-    document.getElementById("modalHorario").style.display = "none";
-    cargarHorarios();
-    alert("Horario guardado correctamente");
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById("modalHorario").style.display = "none";
+      cargarHorarios();
+      alert(data.message || "Horario guardado correctamente");
+    } else {
+      alert("Error al guardar el horario: " + (data.message || "Error desconocido"));
+    }
   } catch (err) {
     console.error("❌ Error al guardar horario:", err);
     alert("No se pudo guardar el horario");
+  }
+}
+
+async function editarHorario(id) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/admin/horarios/${id}`);
+    const data = await res.json();
+    if (data.success) {
+      abrirModalHorario(data.data);
+    }
+  } catch (err) {
+    console.error("❌ Error al cargar datos del horario:", err);
+  }
+}
+
+async function eliminarHorario(id) {
+  if (!confirm("¿Estás seguro de que deseas eliminar este horario?")) return;
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/admin/horarios/${id}`, {
+      method: "DELETE"
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      cargarHorarios();
+      alert("Horario eliminado correctamente");
+    } else {
+      alert("Error al eliminar el horario: " + (data.message || "Error desconocido"));
+    }
+  } catch (err) {
+    console.error("❌ Error al eliminar horario:", err);
+    alert("No se pudo eliminar el horario");
   }
 }
 
